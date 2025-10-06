@@ -9,20 +9,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "24"
+      - run: npm run build
 
-      - name: Run script to generate RSC
-        run: npm run build
-
-      - name: Commit and push RSC file
-        run: |
+      - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .
+          git branch -D build || true
+          git checkout --orphan build
+          mv build/*.rsc ${{ runner.temp }}
+          git rm -rf .
+          mv ${{ runner.temp }}/*.rsc .
+          git add *.rsc
           git commit -m "⚡build: $(date +%Y/%m/%d)" || echo "No changes to commit"
-          git push
+          git push origin build --force
