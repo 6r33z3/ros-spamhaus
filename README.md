@@ -1,5 +1,7 @@
 # ros-spamhaus
 
+![build](https://github.com/6r33z3/ros-spamhaus/actions/workflows/build.yml/badge.svg)
+
 Converts the upstream blacklist [v4](https://www.spamhaus.org/drop/drop_v4.json) and [v6](https://www.spamhaus.org/drop/drop_v6.json) from [Spamhaus](https://www.spamhaus.org/) as dynamic address lists for blocking in RouterOS with daily updates.
 
 Tested on RB5009UPr+S+ (7.19.6). Each update cycle cost about 10s.
