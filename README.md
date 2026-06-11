@@ -4,22 +4,15 @@
 
 Converts the upstream blacklist [v4](https://www.spamhaus.org/drop/drop_v4.json) and [v6](https://www.spamhaus.org/drop/drop_v6.json) from [Spamhaus](https://www.spamhaus.org/) as dynamic address lists for blocking in RouterOS with daily updates.
 
-Tested on RB5009UPr+S+ (7.19.6). Each update cycle cost about 10s.
+Tested on RB5009UPr+S+ (7.20.8). Each update cycle cost about 10s.
 
 ## script
 
+Note: Fetch onto `tmpfs` could help minimizing NAND wearing , e.g.:
+
 ```routeros
-:local baseUrl "https://raw.githubusercontent.com/6r33z3/ros-spamhaus/refs/heads/build"
-:local versions {"v4";"v6"}
-
-:foreach version in=$versions do={
-  :local fileName "spamhaus-drop-$version.rsc"
-  /tool fetch url="$baseUrl/$fileName" dst-path="$fileName" mode=https
-  /import file-name="$fileName"
-}
+/disk add type=tmpfs tmpfs-max-size=16M slot=tmpfs
 ```
-
-Note: Fetch onto `usb1-disk` (if applicable) could help minimizing NAND wearing , e.g.:
 
 ```routeros
 :local baseUrl "https://raw.githubusercontent.com/6r33z3/ros-spamhaus/refs/heads/build"
