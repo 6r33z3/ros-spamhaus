@@ -75,8 +75,15 @@ async function fetchIPList(url, validator) {
                                 })
                                 .filter(cidr => cidr !== null);
 
-                            if (ipList.length === 0) {
+                            // Remove duplicate entries
+                            const uniqueIpList = [...new Set(ipList)];
+                            const duplicateCount = ipList.length - uniqueIpList.length;
+
+                            if (uniqueIpList.length === 0) {
                                 console.log(`Warning: No valid ${validator.name} addresses found after parsing.`);
+                            }
+                            if (duplicateCount > 0) {
+                                console.log(`Removed ${duplicateCount} duplicate addresses for ${validator.name}.`);
                             }
                             if (skippedLines > 0) {
                                 console.log(`Skipped ${skippedLines} invalid or non-CIDR lines for ${validator.name}.`);
@@ -107,8 +114,7 @@ function generateRouterOSScript(ips, listName, commandPath) {
 
     // Start building the script
     let script = `# Generated on ${dateTime}\n`;
-    script += `${commandPath} firewall address-list remove [find list=${listName}]\n`;
-    script += ':local ips { \\\n';
+    script += `:local ips { \\\n`;
 
     // Format each IP
     ips.forEach((ip, index) => {
@@ -119,11 +125,13 @@ function generateRouterOSScript(ips, listName, commandPath) {
         script += '\\\n';
     });
 
-    // Close the array and add foreach loop
-    script += '};\n';
-    script += `:foreach ip in=$ips do={\n`;
-    script += `\t${commandPath} firewall address-list add list=${listName} address=$ip dynamic=yes timeout=${TIMEOUT}d\n`;
-    script += '}\n';
+    script += `};\n`;
+    script += `${commandPath} firewall address-list {\n`;
+    script += `\tremove [find list=${listName}]\n`;
+    script += `\t:foreach ip in=$ips do={\n`;
+    script += `\t\t:do { add list=${listName} address=$ip dynamic=yes timeout=${TIMEOUT}d } on-error={}\n`;
+    script += "\t}\n";
+    script += "}\n";
     script += `:set ips\n`;
 
     return script;
@@ -158,7 +166,7 @@ async function main() {
             console.log(`Script saved to ${outputFile}`);
         }
     } catch (error) {
-        console.error('Error:', error.message);
+        console.error(`Error: ${error.message}`);
         process.exit(1);
     }
 }
